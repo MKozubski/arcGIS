@@ -6,10 +6,6 @@ import Select from "react-select";
 import EXIF from "exif-js";
 var exifr = require("exifr"); 
 
-function importAll(r) {
-  return r.keys().map(r);
-}
-
 export default function MapWithMarkers() {
   const [data, setData] = useState("");
   const [geoJSON, setGeoData] = useState(null);
@@ -30,7 +26,9 @@ export default function MapWithMarkers() {
     { value: "dark-gray-vector", label: "Dark Grey" }
   ];
 
+
   const images = importAll(require.context('./Images/', false, /\.(png|jpe?g|svg|JPG)$/));
+  const sendImage = '<img src="./Images/ ' + trimFilename(images[0]) +'" alt="View" width="10px" height="10px"/>';
   console.log(images);
   async function getImageDetails() {
     console.log(EXIF);
@@ -41,9 +39,17 @@ export default function MapWithMarkers() {
     console.log("latitude ", exifdata.latitude);
     console.log("longitude", exifdata.longitude);
     setImageDetails([exifdata.latitude, exifdata.longitude]);
-
+  
   }
   console.log(imageDetails);
+
+  function importAll(r) {
+    return r.keys().map(r);
+  }
+
+  function trimFilename(path) {
+    return path.split('/').pop();
+  }
 
   // Fetched the contents of the gpx file
   useEffect(() => {
@@ -73,7 +79,6 @@ export default function MapWithMarkers() {
       return;
     }
 
-    const pictures = images;
 
     if(!selectedOption){
       setSelectedOption("streets-navigation-vector");
@@ -105,7 +110,7 @@ export default function MapWithMarkers() {
             maxZoom: maxZoom,
           },
         });
-
+        console.log(trimFilename(images[0]));
         // creates graphics from geoJSON coordinates
         const graphics = geoJSON.map((coord) => {
           return new Graphic({
@@ -118,19 +123,18 @@ export default function MapWithMarkers() {
         });
 
         // Define a pop-up for Trailheads
-        const popupTrailheads = {
+        const Trails = {
           title: "Location",
           content: (feature) => {
             const lat = feature.graphic.geometry.latitude.toFixed(6);
             const lon = feature.graphic.geometry.longitude.toFixed(6);
-            console.log(pictures[1]);
             return `
-        <div>
-          <p>Latitude: ${lat}</p>
-          <p>Longitude: ${lon}</p>
-          <img src=${pictures[1]} alt="View" style="width:252px;height:25px;" />
-        </div>
-      `;
+                <div>
+                  <p>Latitude: ${lat}</p>
+                  <p>Longitude: ${lon}</p>
+                  ${sendImage}
+                </div>
+              `;
           },
         };
 
@@ -139,7 +143,7 @@ export default function MapWithMarkers() {
           source: graphics,
           objectIdField: "OBJECTID",
           geometryType: "point",
-          popupTemplate: popupTrailheads,
+          popupTemplate: Trails,
           spatialReference: {
             wkid: 4326,
           },
