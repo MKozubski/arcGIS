@@ -1,6 +1,6 @@
 import './App.css';
 import MapWithMarkers from './Components/Markers/MarkerMap';
-import MapWithMarkersAndCharts from './Components/Markers/MarkerTwo';
+import MapWithMarkersAndCharts from './Components/Markers/MarkersTwo';
 
 function App() {
   return (

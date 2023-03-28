@@ -1,10 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { loadModules } from "esri-loader";
+import Select from "react-select";
 
 const MapWithMarkersAndCharts = () => {
-  const [map, setMap] = useState(null);
-  const [view, setView] = useState(null);
   const [graphicsLayer, setGraphicsLayer] = useState(null);
+  const [chartData, setChartData] = useState([]);
+  const [selectedOption, setSelectedOption] = useState("streets-navigation-vector");
+  const options = [
+    { value: "streets-navigation-vector", label: "Street" },
+    { value: "oceans", label: "Oceans" },
+    { value: "topo-vector", label: "Topographic" },
+    { value: "terrain", label: "Terrain" },
+    { value: "satellite", label: "Satellite" },
+    { value: "osm", label: "Open-Street-Map" },
+    { value: "hybrid", label: "Hybrid" },
+    { value: "gray-vector", label: "Gray" },
+    { value: "dark-gray-vector", label: "Dark Grey" }
+  ];
 
   useEffect(() => {
     loadModules(
@@ -12,22 +24,19 @@ const MapWithMarkersAndCharts = () => {
       { css: true }
     ).then(([Map, MapView, GraphicsLayer]) => {
       const map = new Map({
-        basemap: "streets-navigation-vector",
+        basemap: selectedOption,
       });
       const view = new MapView({
         container: "map-view",
         map: map,
-        center: [-118.805, 34.027], // lon, lat
+        center: [-105.056455666199327, 69.121805727481842], // lon, lat
         zoom: 13,
       });
       const graphicsLayer = new GraphicsLayer();
       map.add(graphicsLayer);
-
-      setMap(map);
-      setView(view);
       setGraphicsLayer(graphicsLayer);
     });
-  }, []);
+  }, [selectedOption]);
 
   useEffect(() => {
     if (!graphicsLayer) return;
@@ -43,8 +52,11 @@ const MapWithMarkersAndCharts = () => {
         latitude,
       });
 
+      let rand1 = Math.round(Math.random() * 50) + 25;
+      let rand2 = Math.round(Math.random() * 50) + 24;
+
       const popupTemplate = {
-        title: "Marker",
+        title: "ARF Marker's",
         content: [
           {
             type: "fields",
@@ -54,8 +66,12 @@ const MapWithMarkersAndCharts = () => {
                 label: "Name",
               },
               {
-                fieldName: "value",
-                label: "Value",
+                fieldName: "value1",
+                label: "Research Tasks",
+              },
+              {
+                fieldName: "value2",
+                label: "Research Staff",
               },
             ],
           },
@@ -63,24 +79,18 @@ const MapWithMarkersAndCharts = () => {
             type: "media",
             mediaInfos: [
               {
-                type: "chart",
-                title: "Chart",
-                caption: "Chart",
+                type: "pie-chart",
                 value: {
-                  fields: ["name", "value"],
-                  series: [
-                    {
-                      category: "name",
-                      value: "value",
-                      type: "column",
-                      label: {
-                        visible: true,
-                        format: {
-                          places: 0,
-                          digitSeparator: true,
-                        },
-                      },
+                  label: {
+                    visible: true,
+                    format: {
+                      places: 0,
+                      digitSeparator: true,
                     },
+                  },
+                  fields: ["value1", "value2"],
+                  data: [
+                    { value1: rand1, value2: rand2 },
                   ],
                 },
               },
@@ -89,11 +99,13 @@ const MapWithMarkersAndCharts = () => {
         ],
       };
 
+      let research = "Project " + Math.round(Math.random() * 1000);
       const marker = new Graphic({
         geometry: point,
         attributes: {
-          name: "Example Marker",
-          value: 50,
+          name: research,
+          value1: rand1,
+          value2: rand2,
         },
         popupTemplate: popupTemplate,
       });
@@ -101,11 +113,26 @@ const MapWithMarkersAndCharts = () => {
       graphicsLayer.add(marker);
     };
 
-    createMarker(-118.805, 34.027);
-    createMarker(-118.788, 34.012);
+    createMarker(-105.066487127915025, 69.12150364369154);
+    createMarker(-105.046487128915050, 69.122674763202667);
   }, [graphicsLayer]);
 
-  return <div id="map-view" style={{ height: "100vh" }} />;
+  function handleChange(e) {
+    console.log(e.value);
+    setSelectedOption(e.value);
+  }
+
+  return <><div id="map-view" style={{ height: "500px",  }} /><div style={{ position: "fixed", top: "30px", right: "350px" }}>
+    <div style={{width: "250px"}}>
+    <Select
+      placeholder={selectedOption}
+      value={selectedOption}
+      onChange={(e) => handleChange(e)}
+      options={options}
+      isSearchable={false}
+      />
+    </div>
+  </div></>;
 };
 
 export default MapWithMarkersAndCharts;
